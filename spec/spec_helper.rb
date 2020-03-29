@@ -1,4 +1,5 @@
 require "bundler/setup"
+require "timecop"
 require "with_tax"
 require "with_tax/rate"
 
