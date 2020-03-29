@@ -2,7 +2,7 @@ require 'date'
 
 module WithTax
   class Rate
-    def self.rate(target_date = nil)
+    def self.rate(target_date = nil, target_type = nil)
       t = target_date
       t ||= Date.today
       case t
@@ -15,7 +15,7 @@ module WithTax
       when Date.new(2014, 4, 1)...Date.new(2019, 10, 1)
         0.08
       else
-        0.10
+        target_type == :reduced ? 0.08 : 0.10
       end
     end
   end
