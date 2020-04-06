@@ -27,12 +27,17 @@ RSpec.describe WithTax do
 
     let(:sample_item) { SampleItem.new("SampleName", price) }
     let(:price) { rand(10000) + 1 }
+    let(:rate) { 0.10 }
 
-    it { is_expected.to eq (price * 1.10).ceil }
+    before { allow(WithTax::Rate).to receive(:rate).and_return(rate) }
+
+    it { is_expected.to eq (price * (1 + rate)).ceil }
   end
 
   describe "#rounding_method" do
     subject { sample_item.price_with_tax }
+
+    before { allow(WithTax::Rate).to receive(:rate).and_return(0.10) }
 
     let(:sample_item) { SampleItem.new("SampleName", price) }
 

@@ -19,7 +19,7 @@ module WithTax
   def add_with_tax_method(name)
     self.class.class_eval do
       define_method(name) do
-        ret = send(name.to_s.delete_suffix("_with_tax")).to_s.to_d * 1.10
+        ret = send(name.to_s.delete_suffix("_with_tax")).to_s.to_d * (1 + WithTax::Rate.rate)
 
         rounding_method = WithTax.rounding_method
         rounding_method ? ret.send(rounding_method) : ret
