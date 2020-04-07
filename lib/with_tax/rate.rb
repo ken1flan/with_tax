@@ -1,22 +1,16 @@
 require 'date'
+require 'yaml'
 
 module WithTax
   class Rate
+    TAX_TABLE = File.open("#{__dir__}/rate.yml") { |f| YAML.safe_load(f) }
+
     def self.rate(target_date = nil, target_type = nil)
       t = target_date
       t ||= Date.today
-      case t
-      when Date.new...Date.new(1989, 4, 1)
-        0.0
-      when Date.new(1989, 4, 1)...Date.new(1997, 4, 1)
-        0.03
-      when Date.new(1997, 4, 1)...Date.new(2014, 4, 1)
-        0.05
-      when Date.new(2014, 4, 1)...Date.new(2019, 10, 1)
-        0.08
-      else
-        target_type == :reduced ? 0.08 : 0.10
-      end
+      _k, rate = TAX_TABLE.find { |k, _v| Date.parse(k) <= t }
+      rate ||= {}
+      rate[target_type&.to_s] || rate['default'] || 0.0
     end
   end
 end
