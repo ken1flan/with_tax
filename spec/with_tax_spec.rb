@@ -1,107 +1,136 @@
-RSpec.describe WithTax do
-  before do
-    class SampleItem
-      include WithTax
+RSpec.describe 'WithTax' do
+  describe 'SampleItem#price_with_tax' do
+    subject { sample_item.price_with_tax }
 
-      attr_accessor :name, :price
+    let(:sample_item) { SampleItem.new('SampleName', price) }
 
-      def initialize(name, price)
-        @name = name
-        @price = price
+    before do
+      class SampleItem
+        include WithTax
+
+        attr_accessor :name, :price
+
+        def initialize(name, price)
+          @name = name
+          @price = price
+        end
+      end
+      Timecop.freeze(Date.parse(execution_date))
+    end
+
+    after do
+      Object.instance_eval { remove_const :SampleItem }
+      Timecop.return
+    end
+
+    context 'SampleItem#price = 123のとき' do
+      let(:price) { 123 }
+
+      context '実行日が2019/10/01(2019/10/01消費税改定後)のとき' do
+        let(:execution_date) { '2019/10/01' }
+
+        it '135.3 -> 136(切り上げ)であること' do
+          expect(subject).to eql 136
+        end
+      end
+
+      context '実行日が2019/09/30(2019/10/01消費税改定前)のとき' do
+        let(:execution_date) { '2019/09/30' }
+
+        it '132.84 -> 133(切り上げ)であること' do
+          expect(subject).to eql 133
+        end
       end
     end
   end
 
-  after do
-    Object.instance_eval { remove_const :SampleItem }
-  end
+  describe 'WithTax.rounding_method=' do
+    subject { sample_item.price_with_tax }
 
-  describe "WithTax::VERSION" do
-    it "has a version number" do
-      expect(WithTax::VERSION).not_to be nil
+    let(:sample_item) { SampleItem.new('SampleName', price) }
+
+    before do
+      class SampleItem
+        include WithTax
+
+        attr_accessor :name, :price
+
+        def initialize(name, price)
+          @name = name
+          @price = price
+        end
+      end
+      Timecop.freeze(Date.parse('2019/10/01'))
     end
-  end
 
-  describe "SampleItem#price_with_tax" do
-    subject { sample_item.price_with_tax }
+    after do
+      Object.instance_eval { remove_const :SampleItem }
+      Timecop.return
+    end
 
-    let(:sample_item) { SampleItem.new("SampleName", price) }
-    let(:price) { rand(10000) + 1 }
-    let(:rate) { 0.10 }
-
-    before { allow(WithTax::Rate).to receive(:rate).and_return(rate) }
-
-    it { is_expected.to eq (price * (1 + rate)).ceil }
-  end
-
-  describe "#rounding_method" do
-    subject { sample_item.price_with_tax }
-
-    before { allow(WithTax::Rate).to receive(:rate).and_return(0.10) }
-
-    let(:sample_item) { SampleItem.new("SampleName", price) }
-
-    context "When rounding_method = nil" do
-      before { WithTax.rounding_method = nil }
-
-      context "When price = 123" do
+    context '指定していないとき' do
+      context 'SampleItem#price = 123のとき' do
         let(:price) { 123 }
 
-        it { is_expected.to eq 135.3 }
-      end
-
-      context "When price = 345" do
-        let(:price) { 345 }
-
-        it { is_expected.to eq 379.5 }
+        it '135.3 -> 136(切り上げ)であること' do
+          expect(subject).to eql 136
+        end
       end
     end
 
-    context "When rounding_method = :floor" do
+    context ':floorを指定したとき' do
       before { WithTax.rounding_method = :floor }
 
-      context "When price = 123" do
+      context 'SampleItem#price = 123のとき' do
         let(:price) { 123 }
 
-        it { is_expected.to eq 135 }
-      end
-
-      context "When price = 345" do
-        let(:price) { 345 }
-
-        it { is_expected.to eq 379 }
+        it '135.3 -> 135(切り捨て)であること' do
+          expect(subject).to eql 135
+        end
       end
     end
 
-    context "When rounding_method = :round" do
+    context ':roundを指定したとき' do
       before { WithTax.rounding_method = :round }
 
-      context "When price = 123" do
+      context 'SampleItem#price = 123のとき' do
         let(:price) { 123 }
 
-        it { is_expected.to eq 135 }
+        it '135.3 -> 135(四捨五入)であること' do
+          expect(subject).to eql 135
+        end
       end
 
-      context "When price = 345" do
+      context 'SampleItem#price = 345のとき' do
         let(:price) { 345 }
 
-        it { is_expected.to eq 380 }
+        it '379.5 -> 380(四捨五入)であること' do
+          expect(subject).to eql 380
+        end
       end
     end
 
-    context "When rounding_method = :ceil" do
+    context ':ceilを指定したとき' do
       before { WithTax.rounding_method = :ceil }
 
-      context "When price = 123" do
+      context 'SampleItem#price = 123のとき' do
         let(:price) { 123 }
 
-        it { is_expected.to eq 136 }
+        it '135.3 -> 136(切り上げ)であること' do
+          expect(subject).to eql 136
+        end
       end
+    end
 
-      context "When price = 345" do
-        let(:price) { 345 }
+    context 'nilを指定したとき' do
+      before { WithTax.rounding_method = nil }
 
-        it { is_expected.to eq 380 }
+      context 'SampleItem#price = 123のとき' do
+        let(:price) { 123 }
+
+        it '135.3(小数点以下がそのまま)であること' do
+          expect(subject).to eql 135.3
+        end
       end
     end
   end
