@@ -1,5 +1,7 @@
 require "bundler/setup"
+require "timecop"
 require "with_tax"
+require "with_tax/rate"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
