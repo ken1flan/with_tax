@@ -66,6 +66,7 @@ RSpec.describe 'WithTax' do
     after do
       Object.instance_eval { remove_const :SampleItem }
       Timecop.return
+      WithTax.rounding_method = :ceil
     end
 
     context '指定していないとき' do
@@ -130,6 +131,59 @@ RSpec.describe 'WithTax' do
 
         it '135.3(小数点以下がそのまま)であること' do
           expect(subject).to eql 135.3
+        end
+      end
+    end
+  end
+
+  describe 'WithTax.rate_type=' do
+    subject { sample_item.price_with_tax }
+
+    let(:sample_item) { SampleItem.new('SampleName', price) }
+
+    before do
+      class SampleItem
+        include WithTax
+
+        attr_accessor :name, :price
+
+        def initialize(name, price)
+          @name = name
+          @price = price
+        end
+      end
+      Timecop.freeze(Date.parse('2019/10/01'))
+    end
+
+    after do
+      Object.instance_eval { remove_const :SampleItem }
+      Timecop.return
+    end
+
+    context '指定していないとき' do
+      context 'SampleItem#price = 123のとき' do
+        let(:price) { 123 }
+
+        it '136(10%)であること' do
+          expect(subject).to eql 136
+        end
+      end
+    end
+
+    context 'SampleItem#price = 123のとき' do
+      let(:price) { 123 }
+
+      context '指定していないとき' do
+        it '136(10%)であること' do
+          expect(subject).to eql 136
+        end
+      end
+
+      context ':reducedを指定したとき' do
+        before { WithTax.rate_type = :reduced }
+
+        it '133(8%)であること' do
+          expect(subject).to eql 133
         end
       end
     end
