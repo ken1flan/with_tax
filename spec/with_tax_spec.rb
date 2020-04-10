@@ -44,7 +44,7 @@ RSpec.describe 'WithTax' do
     end
   end
 
-  describe 'WithTax.rounding_method=' do
+  describe 'WithTax::Config.rounding_method=' do
     subject { sample_item.price_with_tax }
 
     let(:sample_item) { SampleItem.new('SampleName', price) }
@@ -66,7 +66,7 @@ RSpec.describe 'WithTax' do
     after do
       Object.instance_eval { remove_const :SampleItem }
       Timecop.return
-      WithTax.rounding_method = :ceil
+      WithTax::Config.rounding_method = :ceil
     end
 
     context '指定していないとき' do
@@ -80,7 +80,7 @@ RSpec.describe 'WithTax' do
     end
 
     context ':floorを指定したとき' do
-      before { WithTax.rounding_method = :floor }
+      before { WithTax::Config.rounding_method = :floor }
 
       context 'SampleItem#price = 123のとき' do
         let(:price) { 123 }
@@ -92,7 +92,7 @@ RSpec.describe 'WithTax' do
     end
 
     context ':roundを指定したとき' do
-      before { WithTax.rounding_method = :round }
+      before { WithTax::Config.rounding_method = :round }
 
       context 'SampleItem#price = 123のとき' do
         let(:price) { 123 }
@@ -112,7 +112,7 @@ RSpec.describe 'WithTax' do
     end
 
     context ':ceilを指定したとき' do
-      before { WithTax.rounding_method = :ceil }
+      before { WithTax::Config.rounding_method = :ceil }
 
       context 'SampleItem#price = 123のとき' do
         let(:price) { 123 }
@@ -124,7 +124,7 @@ RSpec.describe 'WithTax' do
     end
 
     context 'nilを指定したとき' do
-      before { WithTax.rounding_method = nil }
+      before { WithTax::Config.rounding_method = nil }
 
       context 'SampleItem#price = 123のとき' do
         let(:price) { 123 }
@@ -136,7 +136,7 @@ RSpec.describe 'WithTax' do
     end
   end
 
-  describe 'WithTax.rate_type=' do
+  describe 'WithTax::Config.rate_type=' do
     subject { sample_item.price_with_tax }
 
     let(:sample_item) { SampleItem.new('SampleName', price) }
@@ -180,7 +180,7 @@ RSpec.describe 'WithTax' do
       end
 
       context ':reducedを指定したとき' do
-        before { WithTax.rate_type = :reduced }
+        before { WithTax::Config.rate_type = :reduced }
 
         it '133(8%)であること' do
           expect(subject).to eql 133
