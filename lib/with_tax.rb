@@ -1,11 +1,12 @@
 require 'bigdecimal'
 require 'bigdecimal/util'
-require "with_tax/version"
+require 'with_tax/version'
+require 'with_tax/rate'
+require 'with_tax/config'
 
 module WithTax
   class Error < StandardError; end
 
-  @_with_tax_rounding_method = :ceil
 
   def method_missing(name, *args)
     if name.match(/\A(.*)_with_tax\Z/)
@@ -19,27 +20,11 @@ module WithTax
   def add_with_tax_method(name)
     self.class.class_eval do
       define_method(name) do
-        ret = send(name.to_s.delete_suffix("_with_tax")).to_s.to_d * (1 + WithTax::Rate.rate(nil, WithTax.rate_type))
+        ret = send(name.to_s.delete_suffix("_with_tax")).to_s.to_d * (1 + WithTax::Rate.rate(nil, WithTax::Config.rate_type))
 
-        rounding_method = WithTax.rounding_method
+        rounding_method = WithTax::Config.rounding_method
         rounding_method ? ret.send(rounding_method) : ret
       end
     end
-  end
-
-  def self.rounding_method=(strategy)
-    @_with_tax_rounding_method = strategy
-  end
-
-  def self.rounding_method
-    @_with_tax_rounding_method
-  end
-
-  def self.rate_type=(rate_type)
-    @_with_tax_rate_type = rate_type
-  end
-
-  def self.rate_type
-    @_with_tax_rate_type
   end
 end
