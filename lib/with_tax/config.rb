@@ -1,6 +1,7 @@
 module WithTax
   class Config
     @_with_tax_rounding_method = :ceil
+    @_with_tax_rate_type = :default
 
     def self.rounding_method=(method_name)
       @_with_tax_rounding_method = method_name
