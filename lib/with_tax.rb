@@ -7,7 +7,6 @@ require 'with_tax/config'
 module WithTax
   class Error < StandardError; end
 
-
   def method_missing(name, *args)
     if name.match(/\A(.*)_with_tax\Z/)
       add_with_tax_method(name)
