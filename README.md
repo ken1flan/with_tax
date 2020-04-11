@@ -1,28 +1,102 @@
 # WithTax
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/with_tax`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+WithTaxはクラスにincludeすると、`#attr_with_tax`(attrは任意の属性)によって税込みの金額を求められるようになります。
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Gemfileに下のように記述してください。
 
 ```ruby
 gem 'with_tax'
 ```
 
-And then execute:
+それから下を実行してください:
 
-    $ bundle install
+```console
+$ bundle install
+```
 
-Or install it yourself as:
+または自分でインストールするには:
 
-    $ gem install with_tax
+```console
+$ gem install with_tax
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+### 基本的な使い方
+
+下のように`WithTax`を`include`してください。
+
+```ruby
+class SampleItem
+  include WithTax
+
+  attr_accessor :name, :price
+
+  def initialize(name, price)
+    @name = name
+    @price = price
+  end
+end
+```
+
+そうすると下のように`attr_with_tax`というメソッドが利用できるようになり、税込み価格が取得できます。小数点以下は切り上げになっています。
+
+```ruby
+sample_item = SampleItem.new('Some item', 123)
+sample_item.price # => 123
+sample_item.price_with_tax #=> 136
+```
+
+### カスタマイズ
+
+#### 小数の取り扱い
+
+デフォルトでは切り上げになっています。
+ですが、`WithTax::Config.rounding_method`を設定することで切り替えることができます。
+
+##### 切り捨て
+
+`:floor`を設定すると小数点以下を切り捨てます。
+
+```ruby
+sample_item.price #=> 123
+WithTax::Config.rounding_method = :floor
+sample_item.price_with_tax #=> 135
+```
+
+```ruby
+sample_item.price #=> 345
+WithTax::Config.rounding_method = :floor
+sample_item.price_with_tax #=> 379
+```
+
+##### 四捨五入
+
+`:round`を設定すると小数点以下を四捨五入します。
+
+```ruby
+sample_item.price #=> 123
+WithTax::Config.rounding_method = :round
+sample_item.price_with_tax #=> 135
+```
+
+```ruby
+sample_item.price #=> 345
+WithTax::Config.rounding_method = :round
+sample_item.price_with_tax #=> 380
+```
+
+#### 軽減税率
+
+デフォルトでは`10%｀ですが、`WithTax::Config.rate_type`に`:reduced`を設定することで軽減税率の8%に切り替えることができます。
+
+```ruby
+sample_item.price #=> 123
+WithTax::Config.rate_type = :reduced
+sample_item.price_with_tax #=> 133
+```
 
 ## Development
 
@@ -32,5 +106,5 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/with_tax.
+Bug reports and pull requests are welcome on GitHub at https://github.com/ken1flan/with_tax.
 
