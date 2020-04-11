@@ -88,9 +88,19 @@ WithTax::Config.rounding_method = :round
 sample_item.price_with_tax #=> 380
 ```
 
+##### 処理なし
+
+`nil`を設定すると小数点以下を処理しません。
+
+```ruby
+sample_item.price #=> 123
+WithTax::Config.rounding_method = nil
+sample_item.price_with_tax #=> 135.3
+```
+
 #### 軽減税率
 
-デフォルトでは`10%｀ですが、`WithTax::Config.rate_type`に`:reduced`を設定することで軽減税率の8%に切り替えることができます。
+デフォルトでは`10%`ですが、`WithTax::Config.rate_type`に`:reduced`を設定することで軽減税率の8%に切り替えることができます。
 
 ```ruby
 sample_item.price #=> 123
