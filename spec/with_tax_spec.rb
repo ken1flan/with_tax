@@ -44,6 +44,49 @@ RSpec.describe 'WithTax' do
     end
   end
 
+  describe '適用日の指定' do
+    subject { sample_item.price_with_tax(effective_date) }
+
+    let(:sample_item) { SampleItem.new('SampleName', price) }
+
+    before do
+      class SampleItem
+        include WithTax
+
+        attr_accessor :name, :price
+
+        def initialize(name, price)
+          @name = name
+          @price = price
+        end
+      end
+    end
+
+    after do
+      Object.instance_eval { remove_const :SampleItem }
+    end
+
+    context 'SampleItem#price = 123のとき' do
+      let(:price) { 123 }
+
+      context '適用日が2019/10/01(2019/10/01消費税改定後)のとき' do
+        let(:effective_date) { Date.parse('2019/10/01') }
+
+        it '136(10%)であること' do
+          expect(subject).to eql 136
+        end
+      end
+
+      context '適用日が2019/09/30(2019/10/01消費税改定前)のとき' do
+        let(:effective_date) { Date.parse('2019/09/30') }
+
+        it '133(8%)であること' do
+          expect(subject).to eql 133
+        end
+      end
+    end
+  end
+
   describe 'WithTax::Config.rounding_method=' do
     subject { sample_item.price_with_tax }
 
