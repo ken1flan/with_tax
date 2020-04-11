@@ -1,29 +1,24 @@
 RSpec.describe 'WithTax' do
-  describe 'SampleItem#price_with_tax' do
+  describe 'price_with_tax' do
     subject { sample_item.price_with_tax }
 
-    let(:sample_item) { SampleItem.new('SampleName', price) }
-
-    before do
-      class SampleItem
+    let(:sample_item) { klass.new(price) }
+    let(:klass) do
+      Class.new do
         include WithTax
 
-        attr_accessor :name, :price
+        attr_accessor :price
 
-        def initialize(name, price)
-          @name = name
+        def initialize(price)
           @price = price
         end
       end
-      Timecop.freeze(Date.parse(execution_date))
     end
 
-    after do
-      Object.instance_eval { remove_const :SampleItem }
-      Timecop.return
-    end
+    before { Timecop.freeze(Date.parse(execution_date)) }
+    after { Timecop.return }
 
-    context 'SampleItem#price = 123のとき' do
+    context 'price = 123のとき' do
       let(:price) { 123 }
 
       context '実行日が2019/10/01(2019/10/01消費税改定後)のとき' do
@@ -47,26 +42,20 @@ RSpec.describe 'WithTax' do
   describe '適用日の指定' do
     subject { sample_item.price_with_tax(effective_date) }
 
-    let(:sample_item) { SampleItem.new('SampleName', price) }
-
-    before do
-      class SampleItem
+    let(:sample_item) { klass.new(price) }
+    let(:klass) do
+      Class.new do
         include WithTax
 
         attr_accessor :name, :price
 
-        def initialize(name, price)
-          @name = name
+        def initialize(price)
           @price = price
         end
       end
     end
 
-    after do
-      Object.instance_eval { remove_const :SampleItem }
-    end
-
-    context 'SampleItem#price = 123のとき' do
+    context 'price = 123のとき' do
       let(:price) { 123 }
 
       context '適用日が2019/10/01(2019/10/01消費税改定後)のとき' do
@@ -87,33 +76,30 @@ RSpec.describe 'WithTax' do
     end
   end
 
-  describe 'WithTax::Config.rounding_method=' do
+  describe '小数点以下の処理' do
     subject { sample_item.price_with_tax }
 
-    let(:sample_item) { SampleItem.new('SampleName', price) }
-
-    before do
-      class SampleItem
+    let(:sample_item) { klass.new(price) }
+    let(:klass) do
+      Class.new do
         include WithTax
 
-        attr_accessor :name, :price
+        attr_accessor :price
 
-        def initialize(name, price)
-          @name = name
+        def initialize(price)
           @price = price
         end
       end
-      Timecop.freeze(Date.parse('2019/10/01'))
     end
 
+    before { Timecop.freeze(Date.parse('2019/10/01')) }
     after do
-      Object.instance_eval { remove_const :SampleItem }
       Timecop.return
       WithTax::Config.rounding_method = :ceil
     end
 
     context '指定していないとき' do
-      context 'SampleItem#price = 123のとき' do
+      context 'price = 123のとき' do
         let(:price) { 123 }
 
         it '135.3 -> 136(切り上げ)であること' do
@@ -125,7 +111,7 @@ RSpec.describe 'WithTax' do
     context ':floorを指定したとき' do
       before { WithTax::Config.rounding_method = :floor }
 
-      context 'SampleItem#price = 123のとき' do
+      context 'price = 123のとき' do
         let(:price) { 123 }
 
         it '135.3 -> 135(切り捨て)であること' do
@@ -137,7 +123,7 @@ RSpec.describe 'WithTax' do
     context ':roundを指定したとき' do
       before { WithTax::Config.rounding_method = :round }
 
-      context 'SampleItem#price = 123のとき' do
+      context 'price = 123のとき' do
         let(:price) { 123 }
 
         it '135.3 -> 135(四捨五入)であること' do
@@ -145,7 +131,7 @@ RSpec.describe 'WithTax' do
         end
       end
 
-      context 'SampleItem#price = 345のとき' do
+      context 'price = 345のとき' do
         let(:price) { 345 }
 
         it '379.5 -> 380(四捨五入)であること' do
@@ -157,7 +143,7 @@ RSpec.describe 'WithTax' do
     context ':ceilを指定したとき' do
       before { WithTax::Config.rounding_method = :ceil }
 
-      context 'SampleItem#price = 123のとき' do
+      context 'price = 123のとき' do
         let(:price) { 123 }
 
         it '135.3 -> 136(切り上げ)であること' do
@@ -169,7 +155,7 @@ RSpec.describe 'WithTax' do
     context 'nilを指定したとき' do
       before { WithTax::Config.rounding_method = nil }
 
-      context 'SampleItem#price = 123のとき' do
+      context 'price = 123のとき' do
         let(:price) { 123 }
 
         it '135.3(小数点以下がそのまま)であること' do
@@ -179,32 +165,27 @@ RSpec.describe 'WithTax' do
     end
   end
 
-  describe 'WithTax::Config.rate_type=' do
+  describe '税率種別の指定' do
     subject { sample_item.price_with_tax }
 
-    let(:sample_item) { SampleItem.new('SampleName', price) }
-
-    before do
-      class SampleItem
+    let(:sample_item) { klass.new(price) }
+    let(:klass) do
+      Class.new do
         include WithTax
 
-        attr_accessor :name, :price
+        attr_accessor :price
 
-        def initialize(name, price)
-          @name = name
+        def initialize(price)
           @price = price
         end
       end
-      Timecop.freeze(Date.parse('2019/10/01'))
     end
 
-    after do
-      Object.instance_eval { remove_const :SampleItem }
-      Timecop.return
-    end
+    before { Timecop.freeze(Date.parse('2019/10/01')) }
+    after { Timecop.return }
 
     context '指定していないとき' do
-      context 'SampleItem#price = 123のとき' do
+      context 'price = 123のとき' do
         let(:price) { 123 }
 
         it '136(10%)であること' do
@@ -213,7 +194,7 @@ RSpec.describe 'WithTax' do
       end
     end
 
-    context 'SampleItem#price = 123のとき' do
+    context 'price = 123のとき' do
       let(:price) { 123 }
 
       context '指定していないとき' do
