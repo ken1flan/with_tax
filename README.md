@@ -49,6 +49,16 @@ sample_item.price # => 123
 sample_item.price_with_tax #=> 136
 ```
 
+### 適用日
+
+税率改定があるときに、計算の基準になる日を指定することもできます。
+
+```ruby
+sample_item = SampleItem.new('Some item', 123)
+sample_item.price # => 123
+sample_item.price_with_tax(Date.parse('2019/09/30')) #=> 132
+```
+
 ### カスタマイズ
 
 #### 小数の取り扱い
