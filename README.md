@@ -118,6 +118,36 @@ WithTax::Config.rate_type = :reduced
 sample_item.price_with_tax #=> 133
 ```
 
+##### 同一クラスで軽減税率対象かどうか変わる場合
+
+同一クラスで軽減税率対象かどうか変わる場合、`#with_tax_rate_type`で適切な値を返すようにすると、`attr_with_tax`がそれを元に計算します。
+
+```ruby
+class Food
+  include WithTax
+
+  attr_accessor :name, :price, :sales_type
+
+  def initialize(name, price, sales_type)
+    @name = name
+    @price = price
+    @sales_type = sales_type
+  end
+
+  def with_tax_rate_type
+    sales_type == :takeout ? :reduced : :default
+  end
+end
+
+curry = Food.new('カレー', 500, :in_store)
+curry.price #=> 500
+curry.price_with_tax #=> 550
+
+curry_takeout = Food.new('カレー(テイクアウト)', 500, :takeout)
+curry_takeout.price #=> 500
+curry_takeout.price_with_tax #=> 540
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
