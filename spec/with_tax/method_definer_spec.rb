@@ -14,7 +14,7 @@ RSpec.describe WithTax::MethodDefiner do
     end
 
     before do
-      WithTax::MethodDefiner.add_method(sample_item.class, :price_with_tax)
+      WithTax::MethodDefiner.add_method(sample_item.class, :price)
     end
 
     it { is_expected.to respond_to(:price_with_tax).with(1).argument }
