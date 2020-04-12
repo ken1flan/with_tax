@@ -212,4 +212,46 @@ RSpec.describe 'WithTax' do
       end
     end
   end
+
+  describe 'より詳細な税率種別の指定' do
+    subject { sample_item.price_with_tax }
+
+    let(:sample_item) { klass.new(123) }
+    let(:klass) do
+      Class.new do
+        include WithTax
+
+        attr_accessor :price
+
+        def initialize(price)
+          @price = price
+        end
+      end
+    end
+
+    before { Timecop.freeze(Date.parse('2019/10/01')) }
+    after { Timecop.return }
+
+    context 'with_tax_rate_typeが定義されているとき' do
+      before do
+        allow(sample_item).to receive(:with_tax_rate_type).and_return(rate_type)
+      end
+
+      context 'with_tax_rate_typeが:defaultを返すとき' do
+        let(:rate_type) { :default }
+
+        it '136(10%)であること' do
+          expect(subject).to eql 136
+        end
+      end
+
+      context 'with_tax_rate_typeが:reducedを返すとき' do
+        let(:rate_type) { :reduced }
+
+        it '136(10%)であること' do
+          expect(subject).to eql 133
+        end
+      end
+    end
+  end
 end
