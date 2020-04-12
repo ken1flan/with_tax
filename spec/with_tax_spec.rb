@@ -5,9 +5,10 @@ RSpec.describe 'WithTax' do
     let(:sample_item) { klass.new(price) }
     let(:klass) do
       Class.new do
-        include WithTax
+        extend WithTax
 
         attr_accessor :price
+        attr_with_tax :price
 
         def initialize(price)
           @price = price
@@ -45,9 +46,10 @@ RSpec.describe 'WithTax' do
     let(:sample_item) { klass.new(price) }
     let(:klass) do
       Class.new do
-        include WithTax
+        extend WithTax
 
         attr_accessor :name, :price
+        attr_with_tax :price
 
         def initialize(price)
           @price = price

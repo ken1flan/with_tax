@@ -26,13 +26,14 @@ $ gem install with_tax
 
 ### 基本的な使い方
 
-下のように`WithTax`を`include`してください。
+下のように`WithTax`を`extend`し、`attr_with_tax`で対象の属性を指定してください。
 
 ```ruby
 class SampleItem
-  include WithTax
+  extend WithTax
 
   attr_accessor :name, :price
+  attr_with_tax :price
 
   def initialize(name, price)
     @name = name
@@ -41,7 +42,7 @@ class SampleItem
 end
 ```
 
-そうすると下のように`attr_with_tax`というメソッドが利用できるようになり、税込み価格が取得できます。小数点以下は切り上げになっています。
+そうすると下のように`属性名_with_tax`というメソッドが利用できるようになり、税込み価格が取得できます。小数点以下は切り上げになっています。
 
 ```ruby
 sample_item = SampleItem.new('Some item', 123)
