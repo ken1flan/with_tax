@@ -1,3 +1,3 @@
 module WithTax
-  VERSION = "0.1.0"
+  VERSION = '0.1.20200414'
 end

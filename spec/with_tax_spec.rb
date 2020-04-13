@@ -1,4 +1,10 @@
 RSpec.describe 'WithTax' do
+  describe 'バージョン' do
+    it "バージョン番号があること" do
+      expect(WithTax::VERSION).not_to be nil
+    end
+  end
+
   describe 'price_with_tax' do
     subject { sample_item.price_with_tax }
 
