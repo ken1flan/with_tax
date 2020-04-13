@@ -97,10 +97,7 @@ RSpec.describe 'WithTax' do
     end
 
     before { Timecop.freeze(Date.parse('2019/10/01')) }
-    after do
-      Timecop.return
-      WithTax::Config.rounding_method = :ceil
-    end
+    after { Timecop.return }
 
     context ':floorを指定したとき' do
       let(:rounding_method) { :floor }

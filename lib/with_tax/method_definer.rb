@@ -1,7 +1,6 @@
 require 'bigdecimal'
 require 'bigdecimal/util'
 require 'with_tax/rate'
-require 'with_tax/config'
 
 module WithTax
   class MethodDefiner
