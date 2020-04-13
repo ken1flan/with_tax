@@ -60,27 +60,50 @@ sample_item.price # => 123
 sample_item.price_with_tax(Date.parse('2019/09/30')) #=> 132
 ```
 
-### カスタマイズ
+### 詳細設定
 
 #### 小数の取り扱い
 
-デフォルトでは切り上げになっています。
-ですが、`WithTax::Config.rounding_method`を設定することで切り替えることができます。
+デフォルトでは切り上げになっていますが、`rounding_method`を設定することで切り替えることができます。
+
+```ruby
+class SampleItem
+  extend WithTax
+
+  attr_accessor :name, :price
+  attr_with_tax :price, rounding_method: :floor
+
+  def initialize(name, price)
+    @name = name
+    @price = price
+  end
+end
+```
 
 ##### 切り捨て
 
 `:floor`を設定すると小数点以下を切り捨てます。
 
 ```ruby
-sample_item.price #=> 123
-WithTax::Config.rounding_method = :floor
-sample_item.price_with_tax #=> 135
-```
+class SampleItem
+  extend WithTax
 
-```ruby
-sample_item.price #=> 345
-WithTax::Config.rounding_method = :floor
-sample_item.price_with_tax #=> 379
+  attr_accessor :name, :price
+  attr_with_tax :price, rounding_method: :floor
+
+  def initialize(name, price)
+    @name = name
+    @price = price
+  end
+end
+
+sample_item1 = SampleItem.new('Sample Item', 123)
+sample_item1.price #=> 123
+sample_item1.price_with_tax #=> 135
+
+sample_item2 = SampleItem.new('Sample Item', 345)
+sample_item2.price #=> 345
+sample_item2.price_with_tax #=> 379
 ```
 
 ##### 四捨五入
@@ -88,15 +111,25 @@ sample_item.price_with_tax #=> 379
 `:round`を設定すると小数点以下を四捨五入します。
 
 ```ruby
-sample_item.price #=> 123
-WithTax::Config.rounding_method = :round
-sample_item.price_with_tax #=> 135
-```
+class SampleItem
+  extend WithTax
 
-```ruby
-sample_item.price #=> 345
-WithTax::Config.rounding_method = :round
-sample_item.price_with_tax #=> 380
+  attr_accessor :name, :price
+  attr_with_tax :price, rounding_method: :round
+
+  def initialize(name, price)
+    @name = name
+    @price = price
+  end
+end
+
+sample_item1 = SampleItem.new('Sample Item', 345)
+sample_item1.price #=> 123
+sample_item1.price_with_tax #=> 135
+
+sample_item2 = SampleItem.new('Sample Item', 345)
+sample_item2.price #=> 345
+sample_item2.price_with_tax #=> 380
 ```
 
 ##### 処理なし
@@ -104,49 +137,43 @@ sample_item.price_with_tax #=> 380
 `nil`を設定すると小数点以下を処理しません。
 
 ```ruby
+class SampleItem
+  extend WithTax
+
+  attr_accessor :name, :price
+  attr_with_tax :price, rounding_method: nil
+
+  def initialize(name, price)
+    @name = name
+    @price = price
+  end
+end
+
 sample_item.price #=> 123
-WithTax::Config.rounding_method = nil
 sample_item.price_with_tax #=> 135.3
 ```
 
 #### 軽減税率
 
-デフォルトでは`10%`ですが、`WithTax::Config.rate_type`に`:reduced`を設定することで軽減税率の8%に切り替えることができます。
+デフォルトでは`10%`ですが、`rate_type`に`:reduced`を設定することで軽減税率の8%に切り替えることができます。
+
+```ruby
+class SampleItem
+  extend WithTax
+
+  attr_accessor :name, :price
+  attr_with_tax :price, rate_type: :reduced
+
+  def initialize(name, price)
+    @name = name
+    @price = price
+  end
+end
+```
 
 ```ruby
 sample_item.price #=> 123
-WithTax::Config.rate_type = :reduced
 sample_item.price_with_tax #=> 133
-```
-
-##### 同一クラスで軽減税率対象かどうか変わる場合
-
-同一クラスで軽減税率対象かどうか変わる場合、`#with_tax_rate_type`で適切な値を返すようにすると、`attr_with_tax`がそれを元に計算します。
-
-```ruby
-class Food
-  include WithTax
-
-  attr_accessor :name, :price, :sales_type
-
-  def initialize(name, price, sales_type)
-    @name = name
-    @price = price
-    @sales_type = sales_type
-  end
-
-  def with_tax_rate_type
-    sales_type == :takeout ? :reduced : :default
-  end
-end
-
-curry = Food.new('カレー', 500, :in_store)
-curry.price #=> 500
-curry.price_with_tax #=> 550
-
-curry_takeout = Food.new('カレー(テイクアウト)', 500, :takeout)
-curry_takeout.price #=> 500
-curry_takeout.price_with_tax #=> 540
 ```
 
 ## Development

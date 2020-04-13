@@ -4,9 +4,8 @@ require 'with_tax/method_definer'
 module WithTax
   class Error < StandardError; end
 
-  def attr_with_tax(option)
-    attr_name = option
-    WithTax::MethodDefiner.add_method(self, attr_name)
+  def attr_with_tax(attr_name, option = {})
+    WithTax::MethodDefiner.add_method(self, attr_name, option)
   end
 
   def method_missing(name, *args)
