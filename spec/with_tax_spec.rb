@@ -5,9 +5,10 @@ RSpec.describe 'WithTax' do
     let(:sample_item) { klass.new(price) }
     let(:klass) do
       Class.new do
-        include WithTax
+        extend WithTax
 
         attr_accessor :price
+        attr_with_tax :price
 
         def initialize(price)
           @price = price
@@ -45,9 +46,10 @@ RSpec.describe 'WithTax' do
     let(:sample_item) { klass.new(price) }
     let(:klass) do
       Class.new do
-        include WithTax
+        extend WithTax
 
         attr_accessor :name, :price
+        attr_with_tax :price
 
         def initialize(price)
           @price = price
@@ -81,10 +83,12 @@ RSpec.describe 'WithTax' do
 
     let(:sample_item) { klass.new(price) }
     let(:klass) do
+      example = self
       Class.new do
-        include WithTax
+        extend WithTax
 
         attr_accessor :price
+        attr_with_tax :price, rounding_method: example.rounding_method
 
         def initialize(price)
           @price = price
@@ -93,23 +97,10 @@ RSpec.describe 'WithTax' do
     end
 
     before { Timecop.freeze(Date.parse('2019/10/01')) }
-    after do
-      Timecop.return
-      WithTax::Config.rounding_method = :ceil
-    end
-
-    context '指定していないとき' do
-      context 'price = 123のとき' do
-        let(:price) { 123 }
-
-        it '135.3 -> 136(切り上げ)であること' do
-          expect(subject).to eql 136
-        end
-      end
-    end
+    after { Timecop.return }
 
     context ':floorを指定したとき' do
-      before { WithTax::Config.rounding_method = :floor }
+      let(:rounding_method) { :floor }
 
       context 'price = 123のとき' do
         let(:price) { 123 }
@@ -121,7 +112,7 @@ RSpec.describe 'WithTax' do
     end
 
     context ':roundを指定したとき' do
-      before { WithTax::Config.rounding_method = :round }
+      let(:rounding_method) { :round }
 
       context 'price = 123のとき' do
         let(:price) { 123 }
@@ -141,7 +132,7 @@ RSpec.describe 'WithTax' do
     end
 
     context ':ceilを指定したとき' do
-      before { WithTax::Config.rounding_method = :ceil }
+      let(:rounding_method) { :ceil }
 
       context 'price = 123のとき' do
         let(:price) { 123 }
@@ -153,7 +144,7 @@ RSpec.describe 'WithTax' do
     end
 
     context 'nilを指定したとき' do
-      before { WithTax::Config.rounding_method = nil }
+      let(:rounding_method) { nil }
 
       context 'price = 123のとき' do
         let(:price) { 123 }
@@ -170,10 +161,12 @@ RSpec.describe 'WithTax' do
 
     let(:sample_item) { klass.new(price) }
     let(:klass) do
+      expect = self
       Class.new do
-        include WithTax
+        extend WithTax
 
         attr_accessor :price
+        attr_with_tax :price, rate_type: expect.rate_type
 
         def initialize(price)
           @price = price
@@ -184,27 +177,19 @@ RSpec.describe 'WithTax' do
     before { Timecop.freeze(Date.parse('2019/10/01')) }
     after { Timecop.return }
 
-    context '指定していないとき' do
-      context 'price = 123のとき' do
-        let(:price) { 123 }
-
-        it '136(10%)であること' do
-          expect(subject).to eql 136
-        end
-      end
-    end
-
     context 'price = 123のとき' do
       let(:price) { 123 }
 
-      context '指定していないとき' do
+      context ':defaultを指定したとき' do
+        let(:rate_type) { :default }
+
         it '136(10%)であること' do
           expect(subject).to eql 136
         end
       end
 
       context ':reducedを指定したとき' do
-        before { WithTax::Config.rate_type = :reduced }
+        let(:rate_type) { :reduced }
 
         it '133(8%)であること' do
           expect(subject).to eql 133
@@ -213,15 +198,17 @@ RSpec.describe 'WithTax' do
     end
   end
 
-  describe 'より詳細な税率種別の指定' do
+  describe '複数のオプション指定' do
     subject { sample_item.price_with_tax }
 
-    let(:sample_item) { klass.new(123) }
+    let(:sample_item) { klass.new(price) }
     let(:klass) do
+      expect = self
       Class.new do
-        include WithTax
+        extend WithTax
 
         attr_accessor :price
+        attr_with_tax :price, rounding_method: expect.rounding_method, rate_type: expect.rate_type
 
         def initialize(price)
           @price = price
@@ -232,24 +219,50 @@ RSpec.describe 'WithTax' do
     before { Timecop.freeze(Date.parse('2019/10/01')) }
     after { Timecop.return }
 
-    context 'with_tax_rate_typeが定義されているとき' do
-      before do
-        allow(sample_item).to receive(:with_tax_rate_type).and_return(rate_type)
-      end
+    context '小数点以下の処理に:round、税率種別に:reducedを指定したとき' do
+      let(:rounding_method) { :round }
+      let(:rate_type) { :reduced }
 
-      context 'with_tax_rate_typeが:defaultを返すとき' do
-        let(:rate_type) { :default }
+      context 'price = 123のとき' do
+        let(:price) { 123 }
 
-        it '136(10%)であること' do
-          expect(subject).to eql 136
+        it '123 * 1.08 -> 132.8 -> 133(四捨五入かつ8%)であること' do
+          expect(subject).to eql 133
         end
       end
+    end
+  end
+  describe '複数の属性への指定' do
+    let(:sample_item) { klass.new(price, price) }
+    let(:klass) do
+      expect = self
+      Class.new do
+        extend WithTax
 
-      context 'with_tax_rate_typeが:reducedを返すとき' do
-        let(:rate_type) { :reduced }
+        attr_accessor :price, :price_takeout
+        attr_with_tax :price, rounding_method: expect.rounding_method
+        attr_with_tax :price_takeout, rounding_method: expect.rounding_method, rate_type: expect.rate_type
 
-        it '136(10%)であること' do
-          expect(subject).to eql 133
+        def initialize(price, price_takeout)
+          @price = price
+          @price_takeout = price_takeout
+        end
+      end
+    end
+
+    context 'priceの小数点以下の処理に:round、price_takeoutの小数点以下の処理に:round、税率種別に:reducedを指定したとき' do
+      let(:rounding_method) { :round }
+      let(:rate_type) { :reduced }
+
+      context 'price = 123、price_takeout = 123のとき' do
+        let(:price) { 123 }
+
+        it 'price_with_taxは123 * 1.10 -> 135.3 -> 135(四捨五入かつ10%)であること' do
+          expect(sample_item.price_with_tax).to eql 135
+        end
+
+        it 'price_takeout_with_taxは123 * 1.08 -> 132.8 -> 133(四捨五入かつ8%)であること' do
+          expect(sample_item.price_takeout_with_tax).to eql 133
         end
       end
     end
