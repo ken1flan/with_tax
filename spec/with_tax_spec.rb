@@ -200,4 +200,74 @@ RSpec.describe 'WithTax' do
       end
     end
   end
+
+  describe '複数のオプション指定' do
+    subject { sample_item.price_with_tax }
+
+    let(:sample_item) { klass.new(price) }
+    let(:klass) do
+      expect = self
+      Class.new do
+        extend WithTax
+
+        attr_accessor :price
+        attr_with_tax :price, rounding_method: expect.rounding_method, rate_type: expect.rate_type
+
+        def initialize(price)
+          @price = price
+        end
+      end
+    end
+
+    before { Timecop.freeze(Date.parse('2019/10/01')) }
+    after { Timecop.return }
+
+    context '小数点以下の処理に:round、税率種別に:reducedを指定したとき' do
+      let(:rounding_method) { :round }
+      let(:rate_type) { :reduced }
+
+      context 'price = 123のとき' do
+        let(:price) { 123 }
+
+        it '123 * 1.08 -> 132.8 -> 133(四捨五入かつ8%)であること' do
+          expect(subject).to eql 133
+        end
+      end
+    end
+  end
+  describe '複数の属性への指定' do
+    let(:sample_item) { klass.new(price, price) }
+    let(:klass) do
+      expect = self
+      Class.new do
+        extend WithTax
+
+        attr_accessor :price, :price_takeout
+        attr_with_tax :price, rounding_method: expect.rounding_method
+        attr_with_tax :price_takeout, rounding_method: expect.rounding_method, rate_type: expect.rate_type
+
+        def initialize(price, price_takeout)
+          @price = price
+          @price_takeout = price_takeout
+        end
+      end
+    end
+
+    context 'priceの小数点以下の処理に:round、price_takeoutの小数点以下の処理に:round、税率種別に:reducedを指定したとき' do
+      let(:rounding_method) { :round }
+      let(:rate_type) { :reduced }
+
+      context 'price = 123、price_takeout = 123のとき' do
+        let(:price) { 123 }
+
+        it 'price_with_taxは123 * 1.10 -> 135.3 -> 135(四捨五入かつ10%)であること' do
+          expect(sample_item.price_with_tax).to eql 135
+        end
+
+        it 'price_takeout_with_taxは123 * 1.08 -> 132.8 -> 133(四捨五入かつ8%)であること' do
+          expect(sample_item.price_takeout_with_tax).to eql 133
+        end
+      end
+    end
+  end
 end

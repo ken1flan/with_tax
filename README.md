@@ -176,6 +176,56 @@ sample_item.price #=> 123
 sample_item.price_with_tax #=> 133
 ```
 
+#### 複数のオプション設定
+
+`attr_with_max`は複数のオプションも設定できます。
+
+```ruby
+class SampleItem
+  extend WithTax
+
+  attr_accessor :name, :price
+  attr_with_tax :price, rounding_method: :round, rate_type: :reduced
+
+  def initialize(name, price)
+    @name = name
+    @price = price
+  end
+end
+```
+
+```ruby
+sample_item.price #=> 123
+sample_item.price_with_tax #=> 133
+```
+
+#### 複数の属性への設定
+
+`attr_with_max`は複数の属性にも設定できます。
+
+```ruby
+class SampleItem
+  extend WithTax
+
+  attr_accessor :name, :price, :price_takeout
+  attr_with_tax :price, rounding_method: :round
+  attr_with_tax :price_takeout, rounding_method: :round, rate_type: :reduced
+
+  def initialize(name, price, price_takeout)
+    @name = name
+    @price = price
+    @price_takeout = price_takeout
+  end
+end
+```
+
+```ruby
+sample_item.price #=> 123
+sample_item.price_with_tax #=> 135
+sample_item.price_takeout #=> 123
+sample_item.price_takeout_with_tax #=> 133
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
