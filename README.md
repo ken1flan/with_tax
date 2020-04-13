@@ -1,6 +1,6 @@
 # WithTax
 
-WithTaxはクラスにincludeすると、`#attr_with_tax`(attrは任意の属性)によって税込みの金額を求められるようになります。
+WithTaxはクラスにextendし、`.attr_with_tax`で属性を指定すると、`#(指定した属性)_with_tax`というメソッドで税込金額を求められるようになります。
 
 ## Installation
 
